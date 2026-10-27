@@ -1,0 +1,40 @@
+name: .NET CI
+
+on:
+push:
+branches:
+- main
+pull_request:
+branches:
+- main
+workflow_dispatch:
+
+permissions:
+contents: read
+
+jobs:
+build:
+name: Build and Test
+runs-on: ubuntu-latest
+
+steps:
+  - name: Check out repository
+    uses: actions/checkout@v4
+
+  - name: Set up .NET
+    uses: actions/setup-dotnet@v4
+    with:
+      dotnet-version: '10.0.x'
+
+  - name: Check .NET SDK
+    run: dotnet --info
+
+  - name: Check for solution file
+    shell: bash
+    run: |
+      if find . -maxdepth 4 -name '*.sln' -o -name '*.slnx' -print -quit | grep -q .; then
+        echo "Solution file found."
+      else
+        echo "No .NET solution found yet. The backend has not been created."
+        echo "The .NET build and test steps will be enabled when the solution is added."
+      fi
