@@ -1,46 +1,46 @@
 name: .NET CI
 
 on:
-push:
-branches:
-- main
-pull_request:
-branches:
-- main
-workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-name: Build and Test
-runs-on: ubuntu-latest
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Check out repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-  - name: Set up .NET
-    uses: actions/setup-dotnet@v4
-    with:
-      dotnet-version: '10.0.x'
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-  - name: Check .NET SDK
-    run: dotnet --info
+      - name: Check .NET SDK
+        run: dotnet --info
 
-  - name: Restore, build, and test solution when available
-    shell: bash
-    run: |
-      solution="$(find . -maxdepth 4 -name '*.sln' -o -name '*.slnx' -print -quit)"
+      - name: Restore, build, and test solution when available
+        shell: bash
+        run: |
+          solution="$(find . -maxdepth 4 \( -name '*.sln' -o -name '*.slnx' \) -print -quit)"
 
-      if [ -z "$solution" ]; then
-        echo "No .NET solution found yet."
-        echo "The backend has not been created, so restore, build, and test are skipped for now."
-        exit 0
-      fi
+          if [ -z "$solution" ]; then
+            echo "No .NET solution found yet."
+            echo "The backend has not been created, so restore, build, and test are skipped for now."
+            exit 0
+          fi
 
-      echo "Using solution: $solution"
-      dotnet restore "$solution"
-      dotnet build "$solution" --configuration Release --no-restore
-      dotnet test "$solution" --configuration Release --no-build --verbosity normal
+          echo "Using solution: $solution"
+          dotnet restore "$solution"
+          dotnet build "$solution" --configuration Release --no-restore
+          dotnet test "$solution" --configuration Release --no-build --verbosity normal
