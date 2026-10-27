@@ -148,6 +148,7 @@ vite.config.ts.timestamp-*
 # Turbo Repo
 .turbo
 
+# .NET builds output
 .NET build output
 
 **/bin/
