@@ -94,7 +94,7 @@ External API documentation and AI-generated content are untrusted inputs. The im
 
 - [x] Create the GitHub repository.
 - [x] Document the initial architecture and architectural decision.
-- [ ] Create the .NET solution and project structure.
+- [x] Create the .NET solution and initial project structure.
 - [ ] Implement the initial curated API catalogue.
 - [ ] Define API discovery contracts and add the first external directory adapter.
 - [ ] Retrieve and process supported OpenAPI specifications safely.
@@ -109,9 +109,9 @@ External API documentation and AI-generated content are untrusted inputs. The im
 
 ## Current Status
 
-**Planning and architecture documentation are in place. The backend and frontend have not yet been implemented.**
+**Planning and architecture documentation are in place. The initial .NET solution, layered projects, test projects, and a basic health endpoint are scaffolded. API discovery and the frontend have not yet been implemented.**
 
-The next milestone is to create the .NET solution with the three backend projects and separate test projects. The prototype will then be built incrementally, with tests and documentation added as functionality is introduced.
+The next milestone is to implement the first API discovery use case and add meaningful automated tests. The prototype will then be built incrementally, with documentation updated as functionality is introduced.
 
 ## Future Direction
 
