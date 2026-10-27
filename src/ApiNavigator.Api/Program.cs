@@ -11,4 +11,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
 app.Run();
 
 // Expose Program to integration tests when a test host is added.
-public partial class Program;
+public partial class Program
+{
+}
