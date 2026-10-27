@@ -1,156 +1,158 @@
-API Navigator — System Architecture
+# API Navigator — System Architecture
 
-1. Purpose
+## 1. Purpose
 
-API Navigator is an AI-assisted application designed to help developers discover APIs, understand API documentation, generate integration examples, and test approved API requests.
+API Navigator is an API discovery and integration assistant designed to help developers find APIs, understand API documentation, generate integration examples, and test approved API requests.
 
-The system will use a React and TypeScript frontend, an ASP.NET Core Web API backend, and Meta AI for AI-assisted functionality.
+The planned stack is a React and TypeScript frontend and an ASP.NET Core Web API backend. AI will provide optional assistance, initially using Meta AI where appropriate. Core discovery and documentation features must remain useful when an AI provider is unavailable.
 
-This document describes the proposed architecture for the initial version.
+This document describes the proposed architecture. It does not imply that the application components have already been implemented.
 
-2. Architectural Goals
+## 2. Architectural Goals
 
 The architecture aims to provide:
 
 - Clear separation of responsibilities.
 - Maintainable and testable application code.
-- Secure AI provider integration.
-- Documentation-grounded code generation.
-- Controlled interaction with external APIs.
+- Discovery of APIs from a local catalogue and supported public sources.
+- Documentation-grounded AI assistance and code generation.
+- AI-provider independence.
+- Controlled and secure interaction with external systems.
 - Automated build and test workflows.
 - A path towards future cloud deployment.
 
-3. High-Level Architecture
+## 3. High-Level Architecture
 
-The application consists of the following logical components:
+The application consists of these logical components:
 
 1. React and TypeScript frontend.
 2. ASP.NET Core Web API.
-3. API catalogue.
-4. OpenAPI specification processor.
-5. AI service adapter.
-6. Request validation and execution services.
-7. External API services.
+3. API catalogue for known APIs.
+4. API discovery service for searching supported external directories.
+5. OpenAPI specification processor.
+6. AI assistance service accessed through an application-owned interface.
+7. Request validation and controlled execution services.
+8. Adapters for external directories, AI providers, and supported APIs.
 
-The frontend communicates with the backend over HTTPS using JSON.
+The frontend communicates with the backend over HTTPS using JSON. The backend coordinates application operations. External directory access, AI-provider calls, and calls to APIs selected for testing take place through backend-controlled components.
 
-The backend coordinates application operations and communicates with the AI provider and supported external APIs when required.
+## 4. Component Responsibilities
 
-4. Component Responsibilities
+### 4.1 Frontend
 
-4.1 Frontend
-
-Technology: React and TypeScript.
+**Technology:** React and TypeScript.
 
 Responsibilities:
 
-- Allow users to search the API catalogue.
-- Display API information and documentation.
-- Submit integration questions.
-- Display generated integration examples.
+- Let users search known APIs and supported external sources.
+- Display API details and documentation links.
+- Submit natural-language discovery and integration questions.
+- Display API comparisons and generated integration examples.
 - Present request validation results.
 - Display API responses and errors.
 
-The frontend must not contain private AI provider credentials.
+The frontend must not contain private AI-provider credentials or other server-side secrets.
 
-4.2 Backend API
+### 4.2 Backend API
 
-Technology: ASP.NET Core Web API using C#.
+**Technology:** ASP.NET Core Web API using C#.
 
 Responsibilities:
 
 - Expose application endpoints.
 - Validate incoming requests.
-- Coordinate application services.
-- Handle error responses consistently.
-- Apply security controls.
-- Communicate with the AI provider through an application-controlled interface.
-- Coordinate approved external API requests.
+- Coordinate application use cases.
+- Handle errors consistently.
+- Apply security controls and request limits.
+- Coordinate API discovery, documentation processing, and AI assistance through application services.
+- Coordinate only approved and controlled external API requests.
 
-The backend will be organised to keep HTTP concerns separate from application logic and infrastructure integrations.
+HTTP concerns must remain separate from application logic and infrastructure integrations.
 
-4.3 API Catalogue
+### 4.3 API Catalogue
 
-The API catalogue will provide a searchable collection of supported APIs.
+The API catalogue provides searchable records for known APIs. The initial prototype may use a small, curated dataset rather than requiring a database.
 
-For the initial prototype, the catalogue may use a small, curated dataset rather than requiring a database.
+An API record may include:
 
-Each entry may include:
-
-- API name.
-- Description.
-- Base URL.
+- API name and description.
+- Base URL, where appropriate.
 - Documentation URL.
 - OpenAPI specification location, where available.
-- Authentication type.
-- Supported capabilities.
+- Authentication type, if known.
+- Supported capabilities and source attribution.
 
-A database can be introduced later if the requirements justify it.
+External discovery results do not have to be permanently saved in the catalogue. Persistence can be added later if the requirements justify it.
 
-4.4 OpenAPI Processor
+### 4.4 API Discovery Service
 
-The OpenAPI processor will retrieve and interpret supported API specifications.
-
-Its responsibilities may include:
-
-- Reading an OpenAPI document.
-- Identifying available endpoints.
-- Extracting HTTP methods and parameters.
-- Describing request and response formats.
-- Providing relevant specification details to the application.
-
-Retrieved specifications must be validated before use.
-
-The application must not blindly trust remote documentation or execute instructions embedded in it.
-
-4.5 AI Service Adapter
-
-The AI service adapter will isolate the application from provider-specific AI implementation details.
-
-The application will use an interface, such as "IAiIntegrationService", to communicate with the AI functionality.
-
-The implementation will connect to Meta AI using its documented API protocol.
+The API discovery service searches sources outside API Navigator's own catalogue. It should use a consistent application-level contract so that individual source integrations can be added or replaced without changing the frontend or core use cases.
 
 Responsibilities:
 
-- Submit relevant API documentation to the AI model.
-- Request explanations and integration examples.
-- Process model responses.
-- Handle provider errors and timeouts.
-- Apply appropriate limits to requests and responses.
+- Accept structured search criteria, such as keywords or categories.
+- Query supported public API directories or registries through source-specific adapters.
+- Normalize results into a common API summary format.
+- Preserve the source and original documentation links.
+- Handle unavailable sources, timeouts, rate limits, and partial results.
+- Avoid presenting unverified metadata as confirmed facts.
 
-Generated code must be treated as untrusted until reviewed and validated.
+The first external source will be selected after checking its availability, API terms, usage limits, and suitability. APIs.guru is a candidate source, not a dependency that has already been integrated. Search results from a directory should not be described as representing every public API on the internet.
 
-4.6 Request Validation and Execution
+### 4.5 OpenAPI Specification Processor
 
-This component will help users prepare and test API requests.
+The OpenAPI processor retrieves and interprets supported API specifications.
 
 Responsibilities may include:
 
-- Validate endpoint URLs.
-- Check supported HTTP methods.
+- Reading supported OpenAPI documents.
+- Identifying endpoints and HTTP methods.
+- Extracting parameters, authentication schemes, and request/response formats.
+- Providing relevant specification details to other application services.
+
+Remote specifications must be validated and constrained by size and timeout limits. Documentation is untrusted input: the application must not execute instructions embedded in it or treat those instructions as trusted system instructions.
+
+### 4.6 AI Assistance Service
+
+AI is an optional capability for tasks that benefit from language understanding or generation, such as:
+
+- Interpreting a developer's natural-language requirements.
+- Explaining API documentation.
+- Comparing discovered APIs against stated requirements.
+- Generating integration examples grounded in retrieved documentation.
+
+The Application layer will define an interface for the AI capability, for example `IAIService`. Infrastructure will provide the provider-specific implementation. Meta AI may be the initial provider, but provider-specific request formats and credentials must remain inside the relevant adapter.
+
+The application must support a clear failure path when AI is unavailable. Core catalogue search, external directory search where available, and documentation display must not require an AI call. A deterministic mock implementation may be used in tests.
+
+AI responses and generated code are untrusted output. They must be validated and reviewed; the application must not automatically execute generated code.
+
+### 4.7 Request Validation and Execution
+
+This component will help users prepare and test approved API requests.
+
+Responsibilities may include:
+
+- Validate destination URLs and supported HTTP methods.
 - Validate parameters and headers.
-- Apply request timeouts.
-- Limit response sizes.
+- Apply request timeouts and response-size limits.
 - Display response status codes and results.
-- Restrict access to unsafe destinations.
+- Restrict access to unsafe destinations and internal network addresses.
+- Require clear user intent before executing requests that may change remote data.
 
-The initial version will prioritise explicitly approved, controlled requests to supported APIs.
+The application must mitigate server-side request forgery (SSRF), unsafe redirects, credential leakage, and unintended data modification. It must not automatically execute arbitrary code or requests generated by AI.
 
-It will not automatically execute arbitrary code generated by the AI model.
+### 4.8 External Systems
 
-4.7 External APIs
+External systems include API directories, AI providers, API documentation hosts, and the APIs a user chooses to test.
 
-External APIs are services that users want to discover, understand, or integrate with.
+Each integration must have a defined boundary, timeout, error-handling strategy, and security policy. External sources may be unavailable, rate-limited, incomplete, or subject to terms of use.
 
-API Navigator will interact only with supported destinations under defined execution rules.
+## 5. Proposed Backend Structure
 
-Requests must be designed to reduce risks such as server-side request forgery, unintended data modification, and exposure of credentials.
+The backend is planned to use the following solution structure:
 
-5. Proposed Backend Structure
-
-The backend may use the following project structure:
-
+```text
 src/
   ApiNavigator.Api/
   ApiNavigator.Application/
@@ -164,77 +166,69 @@ frontend/
 docs/
   architecture.md
   decisions/
+```
 
-ApiNavigator.Api
+**ApiNavigator.Api** contains HTTP endpoints, middleware, dependency-injection configuration, and API-specific configuration.
 
-Contains HTTP endpoints, middleware, dependency injection configuration, and API-specific configuration.
+**ApiNavigator.Application** contains use cases, business rules, and interfaces for capabilities such as API discovery and AI assistance. It must not depend directly on Infrastructure or web-specific API concerns.
 
-ApiNavigator.Application
+**ApiNavigator.Infrastructure** contains implementations for external integrations, including public API directory adapters, AI-provider adapters, and external HTTP access.
 
-Contains application use cases, service interfaces, and business rules.
+**Tests** contain automated tests for application behaviour and integration boundaries.
 
-ApiNavigator.Infrastructure
+The final structure will be adjusted when the solution is created. Interfaces should be introduced where they define meaningful boundaries, not simply to add unnecessary abstraction.
 
-Contains implementations that communicate with external systems, including the AI provider.
+## 6. Dependency Direction
 
-Tests
+- `ApiNavigator.Api` may depend on `ApiNavigator.Application`.
+- `ApiNavigator.Infrastructure` may depend on `ApiNavigator.Application` to implement its interfaces.
+- `ApiNavigator.Application` must not depend directly on `ApiNavigator.Api` or `ApiNavigator.Infrastructure`.
+- Provider-specific AI code and external-source-specific discovery code belong in Infrastructure.
+- Application use cases should depend on application-owned interfaces rather than provider SDKs or external-source response formats.
 
-Contains automated tests for application behaviour and integration boundaries.
-
-The final structure will be adjusted when the solution is created.
-
-6. Security Principles
+## 7. Security Principles
 
 The system will follow these principles:
 
-- Keep secrets out of source control.
-- Store private AI credentials on the backend.
+- Keep secrets out of source control and frontend code.
+- Store private AI credentials on the backend using appropriate secret configuration.
 - Use HTTPS for deployed application traffic.
-- Validate and constrain external URLs.
-- Apply timeouts and response-size limits.
+- Validate and constrain remote URLs and redirects.
+- Apply timeouts, response-size limits, and rate limits where appropriate.
 - Avoid logging secrets and unnecessary sensitive data.
-- Treat AI-generated output as untrusted.
+- Treat remote documentation and AI output as untrusted input.
 - Require explicit controls for external API execution.
-- Restrict network access where practical.
+- Restrict access to internal network destinations to mitigate SSRF.
+- Respect the terms, rate limits, and attribution requirements of external sources.
 - Use managed secret storage when deployed to a suitable cloud environment.
 
-7. Development and Deployment
+## 8. Development and Deployment
 
-Development will initially take place locally.
+Development will initially take place locally. GitHub will be used for source control, and GitHub Actions will automate builds and tests after the .NET solution exists.
 
-GitHub will be used for source control.
+Cloud deployment will be considered after the initial application works locally. Microsoft Azure is the planned cloud platform to evaluate. An API gateway may be introduced later if the application needs centralised traffic management, rate limiting, or API governance.
 
-GitHub Actions will automate builds and tests when changes are pushed to the repository.
+## 9. Implementation Sequence
 
-Cloud deployment will be considered after the initial application works locally.
+The planned implementation sequence is:
 
-Microsoft Azure is the planned cloud platform to evaluate.
+1. Create the .NET solution and establish the layered project references.
+2. Implement a small, searchable curated API catalogue.
+3. Define the application contract for API discovery and add one supported public directory adapter.
+4. Normalize and display external discovery results with source links.
+5. Retrieve and process supported OpenAPI specifications safely.
+6. Add an AI service interface and a deterministic mock for tests.
+7. Integrate Meta AI as the initial provider, keeping it replaceable and optional.
+8. Generate documentation-grounded explanations and integration examples.
+9. Add controlled request validation and execution.
+10. Build the React and TypeScript frontend around the working backend use cases.
+11. Add automated unit and integration tests.
+12. Prepare cloud deployment and document the deployed architecture.
 
-An API gateway may be introduced later if the application needs centralised traffic management, rate limiting, or additional API governance.
+The sequence may be adjusted based on what we learn, but each stage should be tested before the next is introduced.
 
-8. Initial Implementation Priorities
+## 10. Future Considerations
 
-The first implementation will focus on a small end-to-end workflow:
+Potential future improvements include persistent storage for saved API projects, user accounts and authorisation, additional discovery sources, additional AI providers, more programming languages for code generation, cloud deployment, API gateway integration, and improved monitoring.
 
-1. Display a curated API catalogue.
-2. Select an API and retrieve its documentation.
-3. Process the available OpenAPI specification.
-4. Use Meta AI to explain an endpoint or generate an integration example.
-5. Validate an approved request.
-6. Execute a controlled request and display the result.
-
-The objective is to demonstrate a working system before introducing additional infrastructure.
-
-9. Future Considerations
-
-Potential future improvements include:
-
-- Persistent storage for saved integration projects.
-- User authentication and authorisation.
-- Additional AI providers.
-- More programming languages for code generation.
-- Cloud deployment.
-- API gateway integration.
-- Improved monitoring and observability.
-
-These additions will be driven by actual requirements rather than introduced prematurely.
+These additions will be driven by demonstrated requirements rather than introduced prematurely.
