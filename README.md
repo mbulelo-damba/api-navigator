@@ -1,131 +1,122 @@
-API Navigator
+# API Navigator
 
-An AI-powered assistant that helps developers discover APIs, understand API documentation, and build integrations more efficiently.
+**API Navigator is an AI-assisted API discovery and integration platform that helps developers find public APIs, understand their documentation, evaluate their suitability, and build integrations more efficiently.**
 
-📌 Overview
+The project is being developed as a practical portfolio application using ASP.NET Core Web API, C#, React, and TypeScript. AI assistance is designed to be optional: core API discovery should remain useful even when an AI provider is unavailable.
 
-API Navigator aims to simplify the process of integrating with external APIs.
+## Overview
 
-Developers often need to search through documentation, understand endpoints, configure authentication, and write code before they can successfully connect to another service.
+Integrating an external API can involve finding a suitable service, understanding its documentation, checking authentication requirements, and writing and testing integration code.
 
-API Navigator will use AI to help developers navigate these tasks through a single, user-friendly interface.
+API Navigator aims to bring these steps into one user-friendly workflow. It will start with a small, working prototype and expand incrementally.
 
-The project combines AI-assisted development with practical software engineering, backend architecture, and API integration.
+## Goals
 
-🎯 Project Goals
+- Help developers discover APIs relevant to a development task.
+- Make API documentation and OpenAPI specifications easier to understand.
+- Generate integration examples grounded in the selected API's documentation.
+- Help developers validate requests before sending them.
+- Support controlled testing of approved API requests.
+- Demonstrate maintainable backend architecture and optional AI integration.
 
-- Make API documentation easier to understand.
-- Help developers discover APIs relevant to their projects.
-- Generate integration code based on verified API documentation.
-- Simplify API request validation and testing.
-- Demonstrate practical AI integration using Meta AI models.
-- Apply software engineering principles to a real-world application.
+## Planned Features
 
-✨ Planned Features
+### 1. API Discovery
 
-1. API Discovery
+Search an initial curated catalogue and progressively add adapters for external API directories. Discovery results should include useful metadata and links to their original sources.
 
-Search a curated catalogue of APIs and find services relevant to a particular development task.
+### 2. Documentation Assistant
 
-2. Documentation Assistant
+Process supported API documentation and OpenAPI specifications, then explain endpoints, parameters, responses, and authentication requirements in plain language.
 
-Retrieve and explain API documentation and OpenAPI specifications in plain language.
+### 3. Documentation-Grounded Code Examples
 
-3. AI-Powered Code Generation
+Generate example integration code based on verified documentation for the selected API. Generated code will be presented for developer review rather than treated as automatically trusted.
 
-Generate example integration code based on the selected API's documented endpoints, parameters, and authentication requirements.
+### 4. Request Validation
 
-4. Request Validation
+Help developers check HTTP methods, endpoint URLs, parameters, headers, and request formats before sending requests.
 
-Help developers validate API endpoints, HTTP methods, parameters, headers, and request formats before making a request.
+### 5. Controlled API Testing
 
-5. API Testing
+Allow developers to send approved requests to supported external APIs and inspect responses. Requests that could modify remote data should require clear user intent and appropriate safeguards.
 
-Allow developers to execute approved API requests against supported services and inspect the responses.
+### 6. Optional AI Assistance
 
-6. AI Assistance
+Use an AI provider to explain documentation and help with integration tasks. Provider-specific code will sit behind an application-owned interface so the provider can be replaced. Meta AI is the planned initial integration, subject to confirming the appropriate API access and integration method.
 
-Use Meta AI models to help developers understand API documentation and work through integration challenges.
+## Planned Technology Stack
 
-«These features are planned and will be implemented incrementally, beginning with a working prototype.»
+| Component | Technology |
+|---|---|
+| Backend API | ASP.NET Core Web API |
+| Backend language | C# |
+| Backend architecture | Layered solution: API, Application, Infrastructure |
+| Frontend | React and TypeScript |
+| API description format | OpenAPI |
+| AI integration | Provider adapter behind an application interface; Meta AI planned initially |
+| Database | To be decided if persistence is needed for the prototype |
+| Version control | Git and GitHub |
+| Continuous integration | GitHub Actions |
+| Future cloud hosting | Microsoft Azure |
 
-🛠️ Planned Technology Stack
+Technology choices may evolve as the prototype is implemented.
 
-Component| Technology
-Backend| ASP.NET Core Web API
-Programming Language| C#
-Frontend| React and TypeScript
-AI Integration| Meta AI API
-API Documentation| OpenAPI
-Database| To be determined if required
-Version Control| Git and GitHub
-Continuous Integration| GitHub Actions
-Future Cloud Hosting| Microsoft Azure
+## Architecture
 
-Technology choices may evolve as development progresses.
+The backend is planned around three projects:
 
-🏗️ Architecture Principles
+- **ApiNavigator.Api** — HTTP endpoints, middleware, and application configuration.
+- **ApiNavigator.Application** — application use cases, business rules, and interfaces.
+- **ApiNavigator.Infrastructure** — technical implementations and external integrations, including API directory and AI provider adapters.
 
-API Navigator will be designed around the following principles:
+The intended dependency direction is:
 
-- Separation of concerns: Keep API endpoints, application logic, and infrastructure responsibilities separate.
-- Maintainability: Organise the codebase so individual components can be developed and tested independently.
-- Security: Keep API keys and credentials out of source control and frontend code.
-- Reliability: Validate inputs and handle external API failures appropriately.
-- Testability: Use automated tests to verify important application behaviour.
-- Extensibility: Isolate AI provider-specific implementation details behind application interfaces.
-- Cloud readiness: Prepare the application for future deployment to cloud infrastructure.
+- API depends on Application.
+- Infrastructure implements interfaces defined by Application.
+- Application does not directly depend on API or Infrastructure.
 
-🗺️ Development Roadmap
+The initial architecture is documented in [System Architecture](docs/architecture.md) and [ADR 001: Layered .NET Architecture](docs/decisions/001-layered-architecture.md).
+
+## Security Principles
+
+External API documentation and AI-generated content are untrusted inputs. The implementation will account for risks such as:
+
+- Keeping credentials and AI provider secrets on the backend, never in frontend code or source control.
+- Validating user input and external URLs.
+- Mitigating server-side request forgery (SSRF), including attempts to reach internal or otherwise restricted network addresses.
+- Applying timeouts and response-size limits when retrieving external documentation or calling services.
+- Requiring clear user intent for requests that can change remote data.
+- Avoiding unnecessary sensitive data in prompts and logs.
+- Treating AI-generated explanations and code as suggestions that require review.
+
+## Development Roadmap
 
 - [x] Create the GitHub repository.
-- [ ] Establish project documentation and architecture.
-- [ ] Create the ASP.NET Core Web API solution.
-- [ ] Implement the initial API catalogue.
-- [ ] Retrieve and process OpenAPI specifications.
-- [ ] Integrate Meta AI through the backend.
+- [x] Document the initial architecture and architectural decision.
+- [ ] Create the .NET solution and project structure.
+- [ ] Implement the initial curated API catalogue.
+- [ ] Define API discovery contracts and add the first external directory adapter.
+- [ ] Retrieve and process supported OpenAPI specifications safely.
+- [ ] Add an AI interface and a test substitute.
+- [ ] Integrate the initial AI provider once access and integration details are confirmed.
 - [ ] Generate documentation-grounded integration examples.
 - [ ] Implement controlled API request testing.
 - [ ] Build the React and TypeScript frontend.
 - [ ] Add automated unit and integration tests.
-- [ ] Configure GitHub Actions for continuous integration.
-- [ ] Prepare cloud deployment.
-- [ ] Document the completed architecture and deployment process.
+- [ ] Configure GitHub Actions to restore, build, and test the solution.
+- [ ] Prepare and document cloud deployment.
 
-🔐 Security Considerations
+## Current Status
 
-Security is a core design consideration.
+**Planning and architecture documentation are in place. The backend and frontend have not yet been implemented.**
 
-- AI provider credentials must be stored securely on the backend.
-- Secrets must never be committed to GitHub.
-- The frontend must not contain private AI API keys.
-- External requests must be validated and subject to appropriate safeguards.
-- API testing must use explicit controls to reduce the risk of unintended or unsafe requests.
-- Sensitive data must not be unnecessarily included in AI prompts or application logs.
+The next milestone is to create the .NET solution with the three backend projects and separate test projects. The prototype will then be built incrementally, with tests and documentation added as functionality is introduced.
 
-🚀 Project Status
+## Future Direction
 
-Current status: Initial setup and planning.
+After the core prototype works, potential improvements include more API directory sources, additional AI providers, saved integration projects, more languages for code examples, cloud deployment, API gateway integration, and improved observability.
 
-API Navigator is being developed as a practical portfolio project to explore AI-assisted API integration, backend engineering, and modern application architecture.
+## Vision
 
-The initial goal is to deliver a small, functional end-to-end prototype before expanding the feature set.
-
-🔮 Future Direction
-
-Potential future improvements include:
-
-- Additional API providers and documentation formats.
-- More programming languages for generated integration examples.
-- User accounts and saved integration projects.
-- Integration templates and reusable code examples.
-- Cloud deployment and API gateway integration.
-- Improved automated validation and testing workflows.
-
-These improvements will be considered after the core prototype is working.
-
-💡 Vision
-
-Make API integration easier to understand, implement, and test.
-
-API Navigator aims to help developers spend less time navigating documentation and more time building useful software.
+Make API integration easier to discover, understand, implement, and test—so developers can spend less time navigating documentation and more time building useful software.
