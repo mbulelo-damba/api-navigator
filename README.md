@@ -8,7 +8,7 @@ The project is being developed as a practical portfolio application using ASP.NE
 
 Integrating an external API can involve finding a suitable service, understanding its documentation, checking authentication requirements, and writing and testing integration code.
 
-API Navigator aims to bring these steps into one user-friendly workflow. It will start with a small, working prototype and expand incrementally.
+API Navigator aims to bring these steps into one user-friendly workflow. It starts with a curated catalogue and will expand incrementally.
 
 ## Goals
 
@@ -23,7 +23,7 @@ API Navigator aims to bring these steps into one user-friendly workflow. It will
 
 ### 1. API Discovery
 
-Search an initial curated catalogue and progressively add adapters for external API directories. Discovery results should include useful metadata and links to their original sources.
+Search an initial curated catalogue and progressively add adapters for external API directories. Discovery results include useful metadata and links to original documentation.
 
 ### 2. Documentation Assistant
 
@@ -45,6 +45,24 @@ Allow developers to send approved requests to supported external APIs and inspec
 
 Use an AI provider to explain documentation and help with integration tasks. Provider-specific code will sit behind an application-owned interface so the provider can be replaced. Meta AI is the planned initial integration, subject to confirming the appropriate API access and integration method.
 
+## Current API Catalogue
+
+The first catalogue is stored in memory behind an application-owned repository interface. It currently includes:
+
+- **JSONPlaceholder** — mock REST data for prototyping.
+- **Open-Meteo** — weather forecasts and historical weather data.
+- **REST Countries** — country and geography information.
+- **Dog CEO** — dog images and breed information.
+- **Open Library** — book and author search data.
+
+The catalogue endpoint is `GET /api/catalogue`. Optional query-string filters are supported:
+
+- `GET /api/catalogue?search=weather`
+- `GET /api/catalogue?category=Books`
+- `GET /api/catalogue?search=weather&category=Weather`
+
+This first version searches curated metadata only; it does not call the listed APIs or validate their live availability.
+
 ## Planned Technology Stack
 
 | Component | Technology |
@@ -64,7 +82,7 @@ Technology choices may evolve as the prototype is implemented.
 
 ## Architecture
 
-The backend is planned around three projects:
+The backend is organized around three projects:
 
 - **ApiNavigator.Api** — HTTP endpoints, middleware, and application configuration.
 - **ApiNavigator.Application** — application use cases, business rules, and interfaces.
@@ -76,7 +94,7 @@ The intended dependency direction is:
 - Infrastructure implements interfaces defined by Application.
 - Application does not directly depend on API or Infrastructure.
 
-The initial architecture is documented in [System Architecture](docs/architecture.md) and [ADR 001: Layered .NET Architecture](docs/decisions/001-layered-architecture.md).
+The architecture is documented in [System Architecture](docs/architecture.md) and [ADR 001: Layered .NET Architecture](docs/decisions/001-layered-architecture.md).
 
 ## Security Principles
 
@@ -95,7 +113,9 @@ External API documentation and AI-generated content are untrusted inputs. The im
 - [x] Create the GitHub repository.
 - [x] Document the initial architecture and architectural decision.
 - [x] Create the .NET solution and initial project structure.
-- [ ] Implement the initial curated API catalogue.
+- [x] Implement the first curated API catalogue and search endpoint.
+- [x] Add initial unit and integration tests for catalogue search.
+- [ ] Verify the catalogue feature in GitHub Actions before merging.
 - [ ] Define API discovery contracts and add the first external directory adapter.
 - [ ] Retrieve and process supported OpenAPI specifications safely.
 - [ ] Add an AI interface and a test substitute.
@@ -103,15 +123,11 @@ External API documentation and AI-generated content are untrusted inputs. The im
 - [ ] Generate documentation-grounded integration examples.
 - [ ] Implement controlled API request testing.
 - [ ] Build the React and TypeScript frontend.
-- [ ] Add automated unit and integration tests.
-- [ ] Configure GitHub Actions to restore, build, and test the solution.
 - [ ] Prepare and document cloud deployment.
 
 ## Current Status
 
-**Planning and architecture documentation are in place. The initial .NET solution, layered projects, test projects, and a basic health endpoint are scaffolded. API discovery and the frontend have not yet been implemented.**
-
-The next milestone is to implement the first API discovery use case and add meaningful automated tests. The prototype will then be built incrementally, with documentation updated as functionality is introduced.
+The initial .NET solution and layered projects are in place. The first curated API catalogue has been implemented behind an application-layer service and repository contract, with an HTTP endpoint and initial automated tests. The feature branch must pass CI before it is merged into `main`. The frontend, external API directory integration, and AI functionality have not yet been implemented.
 
 ## Future Direction
 
