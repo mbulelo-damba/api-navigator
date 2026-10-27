@@ -29,12 +29,18 @@ steps:
   - name: Check .NET SDK
     run: dotnet --info
 
-  - name: Check for solution file
+  - name: Restore, build, and test solution when available
     shell: bash
     run: |
-      if find . -maxdepth 4 -name '*.sln' -o -name '*.slnx' -print -quit | grep -q .; then
-        echo "Solution file found."
-      else
-        echo "No .NET solution found yet. The backend has not been created."
-        echo "The .NET build and test steps will be enabled when the solution is added."
+      solution="$(find . -maxdepth 4 -name '*.sln' -o -name '*.slnx' -print -quit)"
+
+      if [ -z "$solution" ]; then
+        echo "No .NET solution found yet."
+        echo "The backend has not been created, so restore, build, and test are skipped for now."
+        exit 0
       fi
+
+      echo "Using solution: $solution"
+      dotnet restore "$solution"
+      dotnet build "$solution" --configuration Release --no-restore
+      dotnet test "$solution" --configuration Release --no-build --verbosity normal
