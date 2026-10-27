@@ -1,4 +1,5 @@
 using System.Net;
+using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ApiNavigator.IntegrationTests;
