@@ -147,3 +147,26 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+.NET build output
+
+**/bin/
+**/obj/
+
+Local application settings (may contain sensitive configuration)
+
+**/appsettings.Local.json
+**/appsettings.Development.json
+
+Local secrets
+
+**/secrets.json
+
+IDE-generated files
+
+.vs/
+.idea/
+
+Test results
+
+TestResults/
