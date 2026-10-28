@@ -42,5 +42,16 @@ jobs:
 
           echo "Using solution: $solution"
           dotnet restore "$solution"
+
+          echo "=== Evaluated API project references ==="
+          dotnet msbuild src/ApiNavigator.Api/ApiNavigator.Api.csproj -getItem:ProjectReference
+
+          echo "=== Build Infrastructure project independently ==="
+          dotnet build src/ApiNavigator.Infrastructure/ApiNavigator.Infrastructure.csproj --configuration Release --no-restore --verbosity normal
+
+          echo "=== Build API project independently ==="
+          dotnet build src/ApiNavigator.Api/ApiNavigator.Api.csproj --configuration Release --no-restore --verbosity normal
+
+          echo "=== Build full solution ==="
           dotnet build "$solution" --configuration Release --no-restore
           dotnet test "$solution" --configuration Release --no-build --verbosity normal
