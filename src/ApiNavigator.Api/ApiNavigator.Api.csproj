@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApiNavigator.Application\ApiNavigator.Application.csproj" />
-    <ProjectReference Include="..\ApiNavigator.Infrastructure\ApiNavigator.Infrastructure.csproj" />
+    <ProjectReference Include="../ApiNavigator.Application/ApiNavigator.Application.csproj" />
+    <ProjectReference Include="../ApiNavigator.Infrastructure/ApiNavigator.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
