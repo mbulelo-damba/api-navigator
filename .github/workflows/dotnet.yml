@@ -53,5 +53,5 @@ jobs:
           dotnet build src/ApiNavigator.Api/ApiNavigator.Api.csproj --configuration Release --no-restore --verbosity normal
 
           echo "=== Build full solution ==="
-          dotnet build "$solution" --configuration Release --no-restore
+          dotnet build "$solution" --configuration Release --no-restore --maxcpucount:1
           dotnet test "$solution" --configuration Release --no-build --verbosity normal
