@@ -26,32 +26,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Check .NET SDK
-        run: dotnet --info
+      - name: Restore dependencies
+        run: dotnet restore ApiNavigator.sln
 
-      - name: Restore, build, and test solution when available
-        shell: bash
-        run: |
-          solution="$(find . -maxdepth 4 \( -name '*.sln' -o -name '*.slnx' \) -print -quit)"
+      - name: Build solution
+        run: dotnet build ApiNavigator.sln --configuration Release --no-restore
 
-          if [ -z "$solution" ]; then
-            echo "No .NET solution found yet."
-            echo "The backend has not been created, so restore, build, and test are skipped for now."
-            exit 0
-          fi
-
-          echo "Using solution: $solution"
-          dotnet restore "$solution"
-
-          echo "=== Evaluated API project references ==="
-          dotnet msbuild src/ApiNavigator.Api/ApiNavigator.Api.csproj -getItem:ProjectReference
-
-          echo "=== Build Infrastructure project independently ==="
-          dotnet build src/ApiNavigator.Infrastructure/ApiNavigator.Infrastructure.csproj --configuration Release --no-restore --verbosity normal
-
-          echo "=== Build API project independently ==="
-          dotnet build src/ApiNavigator.Api/ApiNavigator.Api.csproj --configuration Release --no-restore --verbosity normal
-
-          echo "=== Build full solution ==="
-          dotnet build "$solution" --configuration Release --no-restore --maxcpucount:1
-          dotnet test "$solution" --configuration Release --no-build --verbosity normal
+      - name: Run tests
+        run: dotnet test ApiNavigator.sln --configuration Release --no-build --verbosity normal
