@@ -75,7 +75,7 @@ public sealed class ApisGuruDiscoverySourceTests
             (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(payload)
-            }));
+            }))));
     }
 
     private sealed class StubHttpMessageHandler(
