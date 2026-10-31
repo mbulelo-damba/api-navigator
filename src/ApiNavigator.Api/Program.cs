@@ -1,11 +1,17 @@
 using ApiNavigator.Application.Catalogue;
+using ApiNavigator.Application.Discovery;
 using ApiNavigator.Infrastructure.Catalogue;
+using ApiNavigator.Infrastructure.Discovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register application use cases and their infrastructure implementation.
 builder.Services.AddSingleton<IApiCatalogueRepository, InMemoryApiCatalogueRepository>();
 builder.Services.AddSingleton<IApiCatalogueService, ApiCatalogueService>();
+builder.Services.AddHttpClient<IApiDiscoverySource, ApisGuruDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 var app = builder.Build();
 
@@ -32,6 +38,18 @@ app.MapGet(
         })
     .WithName("GetApiCatalogueEntry")
     .WithTags("API Catalogue");
+
+// Search the first supported external directory. Results retain source attribution.
+app.MapGet(
+        "/api/discovery",
+        async (string search, string? category, IApiDiscoverySource discoverySource, CancellationToken cancellationToken) =>
+        {
+            var query = new ApiDiscoveryQuery(search, category);
+            var results = await discoverySource.SearchAsync(query, cancellationToken);
+            return Results.Ok(results);
+        })
+    .WithName("SearchExternalApiDirectory")
+    .WithTags("API Discovery");
 
 app.Run();
 
