@@ -86,7 +86,15 @@ External discovery results do not have to be permanently saved in the catalogue.
 
 ### 4.4 API Discovery Service
 
-The API discovery service searches sources outside API Navigator's own catalogue. It should use a consistent application-level contract so that individual source integrations can be added or replaced without changing the frontend or core use cases.
+The API discovery service searches sources outside API Navigator's own catalogue. A provider-independent application contract has been introduced before connecting a real directory.
+
+The current contract consists of:
+
+- `ApiDiscoveryQuery` — a required search term and optional category. Input is trimmed, and a blank search term is rejected.
+- `ApiDiscoveryResult` — a normalized API listing that can retain its name, description, base URL, documentation URL, OpenAPI specification URL, tags, and source attribution.
+- `IApiDiscoverySource` — an asynchronous source adapter contract that accepts a query and cancellation token and returns normalized results.
+
+Implementations belong in Infrastructure. The Application layer does not depend on a particular directory, its response format, or its SDK. No external directory has been connected yet.
 
 Responsibilities:
 
