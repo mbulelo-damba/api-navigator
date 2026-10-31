@@ -1,7 +1,7 @@
 namespace ApiNavigator.Application.Catalogue;
 
 /// <summary>
-/// Applies catalogue search and category filtering rules.
+/// Applies catalogue search and retrieval rules.
 /// </summary>
 public sealed class ApiCatalogueService : IApiCatalogueService
 {
@@ -41,5 +41,15 @@ public sealed class ApiCatalogueService : IApiCatalogueService
         return entries
             .OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    public ApiCatalogueEntry? GetById(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
+
+        return _repository.GetById(id.Trim());
     }
 }
