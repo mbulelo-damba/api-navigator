@@ -7,4 +7,6 @@ namespace ApiNavigator.Application.Catalogue;
 public interface IApiCatalogueRepository
 {
     IReadOnlyList<ApiCatalogueEntry> GetAll();
+
+    ApiCatalogueEntry? GetById(string id);
 }
