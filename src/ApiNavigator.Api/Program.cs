@@ -22,6 +22,17 @@ app.MapGet(
     .WithName("SearchApiCatalogue")
     .WithTags("API Catalogue");
 
+// Retrieve one catalogue entry by its stable ID.
+app.MapGet(
+        "/api/catalogue/{id}",
+        (string id, IApiCatalogueService catalogueService) =>
+        {
+            var entry = catalogueService.GetById(id);
+            return entry is null ? Results.NotFound() : Results.Ok(entry);
+        })
+    .WithName("GetApiCatalogueEntry")
+    .WithTags("API Catalogue");
+
 app.Run();
 
 // Expose Program to integration tests.
