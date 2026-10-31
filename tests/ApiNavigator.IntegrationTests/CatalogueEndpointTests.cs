@@ -48,4 +48,26 @@ public sealed class CatalogueEndpointTests : IClassFixture<WebApplicationFactory
         var entry = Assert.Single(entries!);
         Assert.Equal("Open Library", entry.Name);
     }
+
+    [Fact]
+    public async Task GetCatalogueEntry_WithExistingId_ReturnsEntry()
+    {
+        using var response = await _client.GetAsync("/api/catalogue/open-meteo");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var entry = await response.Content.ReadFromJsonAsync<ApiCatalogueEntry>();
+
+        Assert.NotNull(entry);
+        Assert.Equal("Open-Meteo", entry.Name);
+        Assert.Equal("https://open-meteo.com/en/docs", entry.DocumentationUrl);
+    }
+
+    [Fact]
+    public async Task GetCatalogueEntry_WithUnknownId_ReturnsNotFound()
+    {
+        using var response = await _client.GetAsync("/api/catalogue/not-a-real-api");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
