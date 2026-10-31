@@ -8,7 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Register application use cases and their infrastructure implementation.
 builder.Services.AddSingleton<IApiCatalogueRepository, InMemoryApiCatalogueRepository>();
 builder.Services.AddSingleton<IApiCatalogueService, ApiCatalogueService>();
-builder.Services.AddHttpClient<IApiDiscoverySource, ApisGuruDiscoverySource>();
+builder.Services.AddHttpClient<IApiDiscoverySource, ApisGuruDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 var app = builder.Build();
 
