@@ -42,9 +42,26 @@ public sealed class ApiCatalogueServiceTests
         Assert.Equal("JSONPlaceholder", entry.Name);
     }
 
+    [Fact]
+    public void GetById_WithExistingId_ReturnsMatchingEntryCaseInsensitively()
+    {
+        var entry = _service.GetById("OPEN-METEO");
+
+        Assert.NotNull(entry);
+        Assert.Equal("Open-Meteo", entry.Name);
+    }
+
+    [Fact]
+    public void GetById_WithUnknownId_ReturnsNull()
+    {
+        var entry = _service.GetById("unknown-api");
+
+        Assert.Null(entry);
+    }
+
     private sealed class TestApiCatalogueRepository : IApiCatalogueRepository
     {
-        public IReadOnlyList<ApiCatalogueEntry> GetAll() =>
+        private static readonly IReadOnlyList<ApiCatalogueEntry> Entries =
         [
             new(
                 "jsonplaceholder",
@@ -76,5 +93,11 @@ public sealed class ApiCatalogueServiceTests
                 "None",
                 ["dogs", "animals"])
         ];
+
+        public IReadOnlyList<ApiCatalogueEntry> GetAll() => Entries;
+
+        public ApiCatalogueEntry? GetById(string id) =>
+            Entries.FirstOrDefault(entry =>
+                string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase));
     }
 }
