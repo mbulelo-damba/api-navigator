@@ -34,10 +34,3 @@ jobs:
 
       - name: Run tests
         run: dotnet test ApiNavigator.sln --configuration Release --no-build --verbosity normal
-
-      # TEMPORARY: intentional failure to test Gmail filtering.
-      - name: Gmail notification test (intentional failure)
-        if: always()
-        run: |
-          echo "Intentional failure for Gmail notification test only."
-          exit 1
