@@ -32,12 +32,5 @@ jobs:
       - name: Build solution
         run: dotnet build ApiNavigator.sln --configuration Release --no-restore
 
-      # TEMPORARY: intentional failure to test the Gmail filter only.
-      - name: Gmail filter test (intentional failure)
-        if: always()
-        run: |
-          echo "Intentional failure for Gmail filter verification only."
-          exit 1
-
       - name: Run tests
         run: dotnet test ApiNavigator.sln --configuration Release --no-build --verbosity normal
