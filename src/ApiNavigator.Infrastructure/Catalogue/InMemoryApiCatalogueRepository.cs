@@ -62,4 +62,8 @@ public sealed class InMemoryApiCatalogueRepository : IApiCatalogueRepository
     ];
 
     public IReadOnlyList<ApiCatalogueEntry> GetAll() => Entries;
+
+    public ApiCatalogueEntry? GetById(string id) =>
+        Entries.FirstOrDefault(entry =>
+            string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase));
 }
