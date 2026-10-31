@@ -105,7 +105,7 @@ Responsibilities:
 - Handle unavailable sources, timeouts, rate limits, and partial results.
 - Avoid presenting unverified metadata as confirmed facts.
 
-The first external source will be selected after checking its availability, API terms, usage limits, and suitability. APIs.guru is a candidate source, not a dependency that has already been integrated. Search results from a directory should not be described as representing every public API on the internet.
+The first adapter connects to APIs.guru through its public `/v2/list.json` endpoint. It selects each API's preferred version, filters cached metadata by search term and category, and preserves specification/documentation links and source attribution. The integration does not download or execute the listed API specifications. APIs.guru is one source, not a complete inventory of every public API. Its catalogue is community-maintained, so individual listings still require verification.
 
 ### 4.5 OpenAPI Specification Processor
 
@@ -222,8 +222,8 @@ The planned implementation sequence is:
 
 1. Create the .NET solution and establish the layered project references.
 2. Implement a small, searchable curated API catalogue.
-3. Define the application contract for API discovery and add one supported public directory adapter.
-4. Normalize and display external discovery results with source links.
+3. Define the application contract for API discovery and connect the first public directory adapter (APIs.guru).
+4. Expose normalized external discovery results with source links through the backend API.
 5. Retrieve and process supported OpenAPI specifications safely.
 6. Add an AI service interface and a deterministic mock for tests.
 7. Integrate Meta AI as the initial provider, keeping it replaceable and optional.
