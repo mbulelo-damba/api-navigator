@@ -1,16 +1,20 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using ApiNavigator.Application.Discovery;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiNavigator.Infrastructure.Discovery;
 
 /// <summary>
 /// Searches the public APIs.guru OpenAPI directory.
 /// </summary>
-public sealed class ApisGuruDiscoverySource(HttpClient httpClient) : IApiDiscoverySource
+public sealed class ApisGuruDiscoverySource(HttpClient httpClient, IMemoryCache cache) : IApiDiscoverySource
 {
     private const string CatalogueUrl = "https://api.apis.guru/v2/list.json";
     private const string DirectoryUrl = "https://apis.guru/";
+    private const string CacheKey = "apis-guru-catalogue-v1";
+    private const int MaximumCatalogueBytes = 20_000_000;
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
+    private static readonly SemaphoreSlim CatalogueLock = new(1, 1);
 
     public async Task<IReadOnlyList<ApiDiscoveryResult>> SearchAsync(
         ApiDiscoveryQuery query,
@@ -18,23 +22,8 @@ public sealed class ApisGuruDiscoverySource(HttpClient httpClient) : IApiDiscove
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        using var response = await httpClient.GetAsync(
-            CatalogueUrl,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-
-        if (response.Content.Headers.ContentLength is > 20_000_000)
-        {
-            throw new HttpRequestException("The APIs.guru catalogue response exceeded the 20 MB limit.");
-        }
-
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        using var document = await JsonDocument.ParseAsync(
-            stream,
-            new JsonDocumentOptions { MaxDepth = 32 },
-            cancellationToken);
+        var payload = await GetCataloguePayloadAsync(cancellationToken);
+        using var document = JsonDocument.Parse(payload, new JsonDocumentOptions { MaxDepth = 32 });
 
         var results = new List<ApiDiscoveryResult>();
         var term = query.SearchTerm;
@@ -93,6 +82,58 @@ public sealed class ApisGuruDiscoverySource(HttpClient httpClient) : IApiDiscove
         return results
             .OrderBy(result => result.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private async Task<byte[]> GetCataloguePayloadAsync(CancellationToken cancellationToken)
+    {
+        if (cache.TryGetValue(CacheKey, out byte[]? cachedPayload) && cachedPayload is not null)
+        {
+            return cachedPayload;
+        }
+
+        await CatalogueLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (cache.TryGetValue(CacheKey, out cachedPayload) && cachedPayload is not null)
+            {
+                return cachedPayload;
+            }
+
+            using var response = await httpClient.GetAsync(
+                CatalogueUrl,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            if (response.Content.Headers.ContentLength is > MaximumCatalogueBytes)
+            {
+                throw new HttpRequestException("The APIs.guru catalogue response exceeded the 20 MB limit.");
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var buffer = new MemoryStream();
+            var chunk = new byte[81920];
+            int bytesRead;
+
+            while ((bytesRead = await stream.ReadAsync(chunk, cancellationToken)) > 0)
+            {
+                if (buffer.Length + bytesRead > MaximumCatalogueBytes)
+                {
+                    throw new HttpRequestException("The APIs.guru catalogue response exceeded the 20 MB limit.");
+                }
+
+                await buffer.WriteAsync(chunk.AsMemory(0, bytesRead), cancellationToken);
+            }
+
+            var payload = buffer.ToArray();
+            cache.Set(CacheKey, payload, CacheDuration);
+            return payload;
+        }
+        finally
+        {
+            CatalogueLock.Release();
+        }
     }
 
     private static string? GetString(JsonElement element, string propertyName) =>
