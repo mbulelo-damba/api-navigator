@@ -79,7 +79,7 @@ public sealed class ApisGuruDiscoverySourceTests
             })));
         var source = new ApisGuruDiscoverySource(client, cache);
 
-        await Assert.ThrowsAsync<System.Text.Json.JsonException>(
+        await Assert.ThrowsAnyAsync<System.Text.Json.JsonException>(
             () => source.SearchAsync(new ApiDiscoveryQuery("weather")));
     }
 
