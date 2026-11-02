@@ -1,11 +1,18 @@
 using ApiNavigator.Application.Catalogue;
+using ApiNavigator.Application.Discovery;
 using ApiNavigator.Infrastructure.Catalogue;
+using ApiNavigator.Infrastructure.Discovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register application use cases and their infrastructure implementation.
 builder.Services.AddSingleton<IApiCatalogueRepository, InMemoryApiCatalogueRepository>();
 builder.Services.AddSingleton<IApiCatalogueService, ApiCatalogueService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IApiDiscoverySource, ApisGuruDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 var app = builder.Build();
 
@@ -32,6 +39,55 @@ app.MapGet(
         })
     .WithName("GetApiCatalogueEntry")
     .WithTags("API Catalogue");
+
+// Search the external directory. Validate user input before calling the provider.
+app.MapGet(
+        "/api/discovery",
+        async (string? search, string? category, IApiDiscoverySource discoverySource, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["search"] = ["A non-empty search term is required."]
+                });
+            }
+
+            if (search.Length > 100)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["search"] = ["The search term cannot exceed 100 characters."]
+                });
+            }
+
+            try
+            {
+                var query = new ApiDiscoveryQuery(search, category);
+                var results = await discoverySource.SearchAsync(query, cancellationToken);
+                return Results.Ok(results);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                return Results.Problem(
+                    title: "External API directory timed out.",
+                    statusCode: StatusCodes.Status504GatewayTimeout);
+            }
+            catch (HttpRequestException)
+            {
+                return Results.Problem(
+                    title: "The external API directory is currently unavailable.",
+                    statusCode: StatusCodes.Status502BadGateway);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return Results.Problem(
+                    title: "The external API directory returned an invalid response.",
+                    statusCode: StatusCodes.Status502BadGateway);
+            }
+        })
+    .WithName("SearchExternalApiDirectory")
+    .WithTags("API Discovery");
 
 app.Run();
 

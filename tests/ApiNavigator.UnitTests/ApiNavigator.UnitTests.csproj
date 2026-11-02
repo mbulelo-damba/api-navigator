@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ApiNavigator.Application\ApiNavigator.Application.csproj" />
+    <ProjectReference Include="..\..\src\ApiNavigator.Infrastructure\ApiNavigator.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
