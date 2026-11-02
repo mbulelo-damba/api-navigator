@@ -1,5 +1,7 @@
+using ApiNavigator.Application.AI;
 using ApiNavigator.Application.Catalogue;
 using ApiNavigator.Application.Discovery;
+using ApiNavigator.Infrastructure.AI;
 using ApiNavigator.Infrastructure.Catalogue;
 using ApiNavigator.Infrastructure.Discovery;
 
@@ -12,6 +14,10 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IApiDiscoverySource, ApisGuruDiscoverySource>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(15);
+});
+builder.Services.AddHttpClient<IApiRecommendationService, MetaApiRecommendationService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 var app = builder.Build();
@@ -88,6 +94,62 @@ app.MapGet(
         })
     .WithName("SearchExternalApiDirectory")
     .WithTags("API Discovery");
+
+// Ask Meta AI to analyse real candidates from the external API directory.
+// Example body: { "projectDescription": "A weather dashboard for South Africa", "searchTerm": "weather" }
+app.MapPost(
+        "/api/assistant/recommendations",
+        async (ApiRecommendationRequest request, IApiRecommendationService recommendationService, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.ProjectDescription) || request.ProjectDescription.Length > 1000)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["projectDescription"] = ["A project description between 1 and 1000 characters is required."]
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.SearchTerm) || request.SearchTerm.Length > 100)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["searchTerm"] = ["A search term between 1 and 100 characters is required."]
+                });
+            }
+
+            try
+            {
+                var result = await recommendationService.RecommendAsync(request, cancellationToken);
+                return Results.Ok(result);
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.Problem(
+                    title: "Meta AI is not configured on this server.",
+                    detail: "The server administrator must configure the MODEL_API_KEY environment variable.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                return Results.Problem(
+                    title: "Meta AI request timed out.",
+                    statusCode: StatusCodes.Status504GatewayTimeout);
+            }
+            catch (HttpRequestException)
+            {
+                return Results.Problem(
+                    title: "Meta AI or the external API directory is currently unavailable.",
+                    statusCode: StatusCodes.Status502BadGateway);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return Results.Problem(
+                    title: "Meta AI returned an invalid response.",
+                    statusCode: StatusCodes.Status502BadGateway);
+            }
+        })
+    .WithName("GetAiApiRecommendations")
+    .WithTags("AI Assistant");
 
 app.Run();
 
