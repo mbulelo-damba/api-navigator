@@ -79,6 +79,12 @@ app.MapGet(
                     title: "The external API directory is currently unavailable.",
                     statusCode: StatusCodes.Status502BadGateway);
             }
+            catch (System.Text.Json.JsonException)
+            {
+                return Results.Problem(
+                    title: "The external API directory returned an invalid response.",
+                    statusCode: StatusCodes.Status502BadGateway);
+            }
         })
     .WithName("SearchExternalApiDirectory")
     .WithTags("API Discovery");
