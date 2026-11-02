@@ -127,6 +127,18 @@ public sealed class ApisGuruDiscoverySource(HttpClient httpClient, IMemoryCache 
             }
 
             var payload = buffer.ToArray();
+
+            // Cache only syntactically valid catalogue JSON with the expected object shape.
+            using (var validationDocument = JsonDocument.Parse(
+                payload,
+                new JsonDocumentOptions { MaxDepth = 32 }))
+            {
+                if (validationDocument.RootElement.ValueKind != JsonValueKind.Object)
+                {
+                    throw new JsonException("The APIs.guru catalogue must be a JSON object.");
+                }
+            }
+
             cache.Set(CacheKey, payload, CacheDuration);
             return payload;
         }
