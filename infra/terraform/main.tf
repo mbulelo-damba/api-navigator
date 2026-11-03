@@ -1,6 +1,5 @@
 # Azure infrastructure for the API Navigator development environment.
-# This configuration creates resources only when an operator explicitly runs
-# "terraform apply". The GitHub Actions validation workflow never applies it.
+# Resources are created only when an operator explicitly runs terraform apply.
 
 terraform {
   required_version = ">= 1.9.0"
@@ -29,13 +28,13 @@ resource "azurerm_service_plan" "api_navigator" {
   resource_group_name = azurerm_resource_group.api_navigator.name
   location            = azurerm_resource_group.api_navigator.location
 
-  os_type  = "Windows"
-  sku_name = "F1"
+  os_type  = "Linux"
+  sku_name = "B1"
 
   tags = var.tags
 }
 
-resource "azurerm_windows_web_app" "api_navigator" {
+resource "azurerm_linux_web_app" "api_navigator" {
   name                = var.web_app_name
   resource_group_name = azurerm_resource_group.api_navigator.name
   location            = azurerm_service_plan.api_navigator.location
@@ -45,8 +44,7 @@ resource "azurerm_windows_web_app" "api_navigator" {
 
   site_config {
     application_stack {
-      current_stack  = "dotnet"
-      dotnet_version = "v10.0"
+      dotnet_version = "10.0"
     }
   }
 

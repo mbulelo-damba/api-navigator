@@ -1,5 +1,5 @@
 variable "location" {
-  description = "Azure region for the development resources. Confirm F1 availability in this region before applying."
+  description = "Preferred Azure region. Confirm current regional SKU availability and pricing before applying."
   type        = string
   default     = "South Africa North"
 }

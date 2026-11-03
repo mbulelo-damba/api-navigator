@@ -1,34 +1,34 @@
 # API Navigator — Azure development infrastructure
 
-This Terraform configuration describes a small development environment for the
-.NET 10 API:
+This Terraform configuration describes a small Linux development environment
+for the .NET 10 API:
 
 - Resource group: `rg-api-navigator-dev`
-- App Service plan: Windows F1
-- Web App: Windows App Service configured for .NET 10
-- Region default: South Africa North
+- App Service plan: Linux Basic B1
+- Web App: Linux App Service configured for .NET 10
+- Preferred region default: South Africa North (override with `-var="location=..."` if another region is more suitable)
 
 ## Important safety notes
 
 - **Nothing in this repository automatically creates Azure resources.**
-- The Terraform GitHub Actions workflow runs formatting and validation only.
-  It does not run `terraform plan` or `terraform apply`.
-- Do not run `terraform apply` until the subscription, region, F1 eligibility,
-  current pricing, and expected charges have been checked in the Azure portal.
-- F1 is a limited shared development/testing tier, not a production tier.
-- A budget sends notifications; it is not a hard spending cap.
-- The Azure Free Account promotional credit and the App Service F1 offer are
-  separate. Other resources and usage can still consume credit or incur charges.
-- Confirm that F1 is available for Windows App Service in the selected region.
-  If South Africa North does not offer the required SKU, choose a region only
-  after reviewing latency, residency requirements, and pricing.
+- Terraform validation workflows do not run `terraform apply`.
+- Do not apply until the exact region, Linux B1 price, .NET 10 runtime availability,
+  promotional-credit eligibility, and expected charges have been checked.
+- Basic B1 is a paid tier. Stopping the Web App does not stop App Service plan
+  billing; delete or downgrade the plan when it is no longer needed.
+- A budget alert is a notification, not a hard spending cap.
+- Promotional credit expires according to the subscription's offer terms.
+  Do not assume unused credit carries over or that charges after expiry are covered.
+- This configuration intentionally creates no database, storage account,
+  Application Insights resource, container registry, or other add-ons.
 
 ## Prerequisites before provisioning
 
 1. An active Azure subscription.
 2. Terraform CLI 1.9 or later.
-3. Azure CLI authentication for the intended subscription.
+3. Azure authentication for the intended subscription.
 4. A globally unique Web App name.
+5. Confirmation of current regional availability and price in Azure.
 
 Set the required Web App name when running Terraform. Do not commit a
 `terraform.tfvars` file containing account-specific values.
@@ -41,8 +41,9 @@ terraform validate
 terraform plan -var="web_app_name=your-unique-api-navigator-name"
 ```
 
-Review the complete plan and cost implications before any apply. Applying is
-intentionally not automated by this repository.
+To use a different region, pass `-var="location=Region Name"`. Review the
+complete plan and cost implications before any apply. Applying is intentionally
+not automated by this repository.
 
 ## Terraform state
 
@@ -57,7 +58,7 @@ The separate `.github/workflows/azure-webapp-deploy.yml` workflow is manual
 only. It requires an existing Web App and GitHub repository variables/secrets
 for Azure OpenID Connect (OIDC). It does not create Azure resources.
 
-Required repository variables:
+Required repository variable:
 
 - `AZURE_WEBAPP_NAME`: the exact Web App name created after approval.
 
