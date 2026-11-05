@@ -1,0 +1,21 @@
+{
+  "name": "azure-infrastructure-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "agents": "^0.20.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20261027.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.45.0"
+  }
+}
