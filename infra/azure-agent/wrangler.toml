@@ -1,0 +1,7 @@
+name = "azure-infrastructure-agent"
+main = "src/index.ts"
+compatibility_date = "2026-10-27"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+AZURE_RESOURCE_GROUP = "rg-api-navigator-dev"
