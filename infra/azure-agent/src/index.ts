@@ -107,6 +107,22 @@ function createServer(env: Env) {
   });
 
   server.registerTool(
+    "agent_status",
+    {
+      description: "Confirm the Claude-to-Cloudflare MCP connection and report whether Azure credentials are configured. Does not contact Azure or change anything.",
+      inputSchema: {},
+    },
+    async () => jsonToolResult({
+      mcp: "connected",
+      azureCredentialsConfigured: Boolean(env.AZURE_TENANT_ID && env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET && env.AZURE_SUBSCRIPTION_ID),
+      azureAccess: "not tested",
+      resourceGroup: env.AZURE_RESOURCE_GROUP || "not configured",
+      deploymentEnabled: false,
+      note: "This is a connection check only. No Azure resource is created, changed, or deleted.",
+    }),
+  );
+
+  server.registerTool(
     "get_resource_group",
     {
       description: "Read the configured Azure resource group's details. Read-only; cannot change Azure.",
